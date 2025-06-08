@@ -1,0 +1,94 @@
+{
+  "mcp_configuration": {
+    "id": "reactkickstart-assistant-v1",
+    "name": "ReactKickstart AI Assistant",
+    "version": "1.0.0",
+    "description": "ReactKickstart CLI ve React bileşen geliştirme süreçlerine yardımcı olmak üzere tasarlanmış bir AI asistanı. Kullanıcı taleplerini CLI komutlarına ve koda dönüştürür."
+  },
+  "model": {
+    "provider": "openai",
+    "name": "gpt-4-turbo-preview",
+    "api_key_env_var": "OPENAI_API_KEY",
+    "comment": "Model sağlayıcısı olarak 'google' (Gemini) veya 'anthropic' (Claude) gibi alternatifler de kullanılabilir. Model adı, sağlayıcının sunduğu modellere göre güncellenmelidir."
+  },
+  "prompts": {
+    "system_prompt_path": "prompts/system_prompt.md",
+    "user_examples_path": "prompts/user_prompts_algorithm.md",
+    "comment": "AI modeline gönderilecek olan sistem isteminin ve örneklerin dosya yolları. Bu yollar, bu config dosyasının bulunduğu yere göreceli olmalıdır."
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "max_tokens": 2048,
+    "top_p": 1.0,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "comment": "Sıcaklık (temperature) değerinin düşük olması, modelin daha tutarlı ve daha az yaratıcı (daha az rastgele) yanıtlar vermesini sağlar. Kod ve komut üretimi için bu idealdir. max_tokens, maliyet kontrolü ve yanıt uzunluğunu sınırlamak için önemlidir."
+  },
+  "output": {
+    "format": "json_object",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AI Assistant Response",
+      "description": "AI asistanından beklenen standart JSON yanıt yapısı.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Yanıtın türünü belirtir.",
+          "enum": ["command", "code", "explanation"]
+        }
+      },
+      "required": ["type"],
+      "oneOf": [
+        {
+          "properties": {
+            "type": { "const": "command" },
+            "command": {
+              "type": "string",
+              "description": "Çalıştırılacak olan geçerli CLI komutu."
+            },
+            "explanation": {
+              "type": "string",
+              "description": "Komutun ne yaptığının kısa açıklaması."
+            }
+          },
+          "required": ["type", "command", "explanation"]
+        },
+        {
+          "properties": {
+            "type": { "const": "code" },
+            "filename": {
+              "type": "string",
+              "description": "Oluşturulan kod için önerilen dosya adı ve yolu.",
+              "pattern": "^(src/|components/|pages/).+\\.(jsx|tsx)$"
+            },
+            "code": {
+              "type": "string",
+              "description": "Oluşturulan React bileşen kodu."
+            },
+            "explanation": {
+              "type": "string",
+              "description": "Kodun ne yaptığının ve nasıl çalıştığının kısa açıklaması."
+            }
+          },
+          "required": ["type", "filename", "code", "explanation"]
+        },
+        {
+          "properties": {
+            "type": { "const": "explanation" },
+            "text": {
+              "type": "string",
+              "description": "Kullanıcının sorusuna verilen metinsel açıklama."
+            }
+          },
+          "required": ["type", "text"]
+        }
+      ]
+    },
+    "comment": "Modelin her zaman bu yapıda bir JSON döndürmesi beklenir. 'json_object' formatı, OpenAI gibi bazı API'lerin çıktıyı bu şemaya uymaya zorlamasına olanak tanır. Bu, uygulamanın gelen yanıtı güvenilir bir şekilde işlemesini sağlar."
+  },
+  "safety_settings": {
+    "level": "high",
+    "comment": "Zararlı veya konu dışı içeriklerin filtrelenmesi için güvenlik seviyesi. Sağlayıcı API'sinin desteklediği değerlere göre ayarlanmalıdır."
+  }
+}
