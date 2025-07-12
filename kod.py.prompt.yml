@@ -68,3 +68,4 @@ modelParameters:
   temperature: 0.8
   stop:
     - asal_toplam
+responseFormat: json_object
